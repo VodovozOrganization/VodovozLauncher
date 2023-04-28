@@ -47,7 +47,7 @@ foreach(var programDirectory in programDirectories)
     var programPath = $"{programDirectory}\\{_waterDeliveryExecutableName}";
     if (File.Exists(programPath))
     {
-        programs.Add(programPath, File.GetCreationTime(programPath));
+        programs.Add(programPath, File.GetLastWriteTime(programPath));
     }
 }
 
