@@ -44,8 +44,11 @@ var programs = new Dictionary<string, DateTime>();
 
 foreach(var programDirectory in programDirectories)
 {
-    programs.Add($"{programDirectory}\\{_waterDeliveryExecutableName}",
-        File.GetCreationTime($"{programDirectory}\\{_waterDeliveryExecutableName}"));
+    var programPath = $"{programDirectory}\\{_waterDeliveryExecutableName}";
+    if (File.Exists(programPath))
+    {
+        programs.Add(programPath, File.GetCreationTime(programPath));
+    }
 }
 
 var lockFilePath = $"{directoryBasePath}\\{_lockFileName}";
@@ -54,13 +57,13 @@ if(File.Exists(lockFilePath))
 {
     string applicationLock = string.Empty;
 
-    StreamReader streamReader = new StreamReader(lockFilePath);
+    var streamReader = new StreamReader(lockFilePath);
 
     applicationLock = streamReader.ReadToEnd();
 
     streamReader.Close();
 
-    if (!string.IsNullOrWhiteSpace(applicationLock))
+    if(!string.IsNullOrWhiteSpace(applicationLock))
     {
         programs.Remove(applicationLock);
     }
