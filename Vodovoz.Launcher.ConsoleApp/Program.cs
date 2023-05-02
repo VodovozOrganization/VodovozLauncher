@@ -47,7 +47,13 @@ foreach(var programDirectory in programDirectories)
     var programPath = $"{programDirectory}\\{_waterDeliveryExecutableName}";
     if (File.Exists(programPath))
     {
-        programs.Add(programPath, File.GetLastWriteTime(programPath));
+        var version = FileVersionInfo.GetVersionInfo(programPath).FileVersion;
+        if(version is null)
+        {
+            continue;
+        }
+
+        programs.Add(programPath, GetDateTimeFGromVersion(Version.Parse(version)));
     }
 }
 
@@ -72,5 +78,9 @@ if(File.Exists(lockFilePath))
 var path = programs.OrderByDescending(x => x.Value).First().Key;
 
 var arguments = $"-d \"{databaseConnectionName}\"";
-
 Process.Start(path, arguments);
+
+DateTime GetDateTimeFGromVersion(Version version) =>
+    new DateTime(2000, 1, 1)
+        .AddDays(version.Build)
+        .AddSeconds(version.Revision * 2);
