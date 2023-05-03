@@ -75,6 +75,13 @@ if(File.Exists(lockFilePath))
     }
 }
 
+if(!programs.Any())
+{
+    Console.WriteLine("Программа обновляется, повторите позднее");
+    Console.ReadKey();
+    return;
+}
+
 var path = programs.OrderByDescending(x => x.Value).First().Key;
 
 var arguments = $"-d \"{databaseConnectionName}\"";
