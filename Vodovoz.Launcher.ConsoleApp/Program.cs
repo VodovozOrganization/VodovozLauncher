@@ -5,7 +5,7 @@ using System.Web;
 const string _protocolPrefix = "vodovoz://";
 const string _waterDeliveryDirectoryName = "WaterDelivery";
 const string _waterDeliveryExecutableName = "Vodovoz.exe";
-const string _lockFileName = "update.lock";
+const string _currentReleaseFileName = "current.lock";
 const string _defaultDatabaseConnectionName = "Рабочая";
 
 #region Override working directory
@@ -38,56 +38,30 @@ var databaseConnectionName = query.Length == 1 ? _defaultDatabaseConnectionName 
 var directoryBasePath = Path.GetFullPath(
     $"{Directory.GetCurrentDirectory()}\\..\\{_waterDeliveryDirectoryName}\\{applicationType}");
 
-var programDirectories = Directory.GetDirectories(directoryBasePath);
+var lockFilePath = $"{directoryBasePath}\\{_currentReleaseFileName}";
 
-var programs = new Dictionary<string, DateTime>();
-
-foreach(var programDirectory in programDirectories)
-{
-    var programPath = $"{programDirectory}\\{_waterDeliveryExecutableName}";
-    if (File.Exists(programPath))
-    {
-        var version = FileVersionInfo.GetVersionInfo(programPath).FileVersion;
-        if(version is null)
-        {
-            continue;
-        }
-
-        programs.Add(programPath, GetDateTimeFGromVersion(Version.Parse(version)));
-    }
-}
-
-var lockFilePath = $"{directoryBasePath}\\{_lockFileName}";
+var applicationPath = string.Empty;
 
 if(File.Exists(lockFilePath))
 {
-    string applicationLock = string.Empty;
-
     var streamReader = new StreamReader(lockFilePath);
 
-    applicationLock = streamReader.ReadToEnd();
+    var currentApplicationDirectory = streamReader.ReadToEnd();
 
     streamReader.Close();
 
-    if(!string.IsNullOrWhiteSpace(applicationLock))
+    if(!string.IsNullOrWhiteSpace(currentApplicationDirectory))
     {
-        programs.Remove(applicationLock);
+        applicationPath = $"{directoryBasePath}\\{currentApplicationDirectory}\\{_waterDeliveryExecutableName}";
     }
 }
 
-if(!programs.Any())
+if(string.IsNullOrWhiteSpace(applicationPath) || !File.Exists(applicationPath))
 {
     Console.WriteLine("Программа обновляется, повторите позднее");
     Console.ReadKey();
     return;
 }
 
-var path = programs.OrderByDescending(x => x.Value).First().Key;
-
 var arguments = $"-d \"{databaseConnectionName}\"";
-Process.Start(path, arguments);
-
-DateTime GetDateTimeFGromVersion(Version version) =>
-    new DateTime(2000, 1, 1)
-        .AddDays(version.Build)
-        .AddSeconds(version.Revision * 2);
+Process.Start(applicationPath, arguments);
