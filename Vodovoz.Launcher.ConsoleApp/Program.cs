@@ -41,6 +41,7 @@ var directoryBasePath = Path.GetFullPath(
 var lockFilePath = $"{directoryBasePath}\\{_currentReleaseFileName}";
 
 var applicationPath = string.Empty;
+var workingDirectory = string.Empty;
 
 if(File.Exists(lockFilePath))
 {
@@ -52,7 +53,8 @@ if(File.Exists(lockFilePath))
 
     if(!string.IsNullOrWhiteSpace(currentApplicationDirectory))
     {
-        applicationPath = $"{directoryBasePath}\\{currentApplicationDirectory}\\{_waterDeliveryExecutableName}";
+        workingDirectory = $"{directoryBasePath}\\{currentApplicationDirectory}";
+        applicationPath = $"{workingDirectory}\\{_waterDeliveryExecutableName}";
     }
 }
 
@@ -64,4 +66,10 @@ if(string.IsNullOrWhiteSpace(applicationPath) || !File.Exists(applicationPath))
 }
 
 var arguments = $"-d \"{databaseConnectionName}\"";
-Process.Start(applicationPath, arguments);
+
+var processStartInfo = new ProcessStartInfo(applicationPath, arguments)
+{
+    WorkingDirectory = workingDirectory
+};
+
+Process.Start(processStartInfo);
